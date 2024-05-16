@@ -1,0 +1,25 @@
+add_rules("mode.debug", "mode.release")
+add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode"})
+
+set_languages("c11", "cxx20")
+set_toolchains("clang")
+
+add_requires("fmt")
+add_requires("boost")
+
+target("saifcpp")
+  set_kind("static")
+  add_includedirs("include")
+  add_cxxflags("-march=native")
+  add_files("src/saifcpp/*.cpp")
+  add_packages("fmt")
+  add_packages("boost")
+
+target("test")
+  set_kind("binary")
+  add_includedirs("include")
+  add_cxxflags("-march=native")
+  add_files("src/test/*.cpp")
+  add_deps("saifcpp")
+  add_packages("fmt")
+  add_packages("boost")

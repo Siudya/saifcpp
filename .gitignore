@@ -1,0 +1,5 @@
+build
+resources
+.vscode
+cmake-build-debug
+.xmake/
