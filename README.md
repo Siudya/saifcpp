@@ -11,7 +11,7 @@ xmake install fmt boost
 ```
 
 ## compilation & test
-```
+```bash
 xmake
 xmake run test <path_to_saif_file>
 ```
