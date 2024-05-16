@@ -1,5 +1,6 @@
 #ifndef __SAIFCPP__H__
 #define __SAIFCPP__H__
+#include "json/value.h"
 #include <boost/lockfree/spsc_queue.hpp>
 #include <fstream>
 #include <memory>
@@ -44,6 +45,7 @@ class SaifBase {
   public:
   std::string fullName;
   virtual state_t domain() = 0;
+  virtual void getJson(Json::Value &) = 0;
 };
 
 class SaifPin : public SaifBase {
@@ -58,6 +60,7 @@ class SaifPin : public SaifBase {
   SaifPin(const std::string &n) { fullName = n; }
   SaifPin() = delete;
   state_t domain() final { return SAIF_PIN; }
+  void getJson(Json::Value &) final;
 };
 
 class SaifNet : public SaifBase {
@@ -66,6 +69,7 @@ class SaifNet : public SaifBase {
   SaifNet(const std::string &n) { fullName = n; }
   SaifNet() = delete;
   state_t domain() final { return SAIF_NET; }
+  void getJson(Json::Value &) final;
 };
 
 class SaifInstance : public SaifBase {
@@ -75,6 +79,7 @@ class SaifInstance : public SaifBase {
   SaifInstance(const std::string &n) { fullName = n; }
   SaifInstance() = delete;
   state_t domain() final { return SAIF_INSTANCE; }
+  void getJson(Json::Value &) final;
 };
 
 class TokenQueue {
@@ -94,6 +99,9 @@ class TokenQueue {
 };
 
 class SaifDB {
+  private:
+  static std::unordered_map<std::string, SaifPin *> globalPinMap;
+
   public:
   std::string version;
   std::string direction;
@@ -107,12 +115,16 @@ class SaifDB {
   std::string timescale;
   std::unique_ptr<SaifInstance> top;
   std::string top_name;
+  Json::Value info;
   void parse(const std::string &);
+  SaifPin *findPin(const std::string &);
+  const Json::Value &getJson();
 
   private:
   std::ifstream ifs;
   std::stack<SaifBase *> eStk;
   TokenQueue tokq;
+  volatile bool infoGen = false;
   void saifParse();
 };
 

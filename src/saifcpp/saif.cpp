@@ -1,5 +1,6 @@
 #include "saif.h"
 #include "fmt/core.h"
+#include "json/value.h"
 #include <boost/token_functions.hpp>
 #include <iostream>
 #include <memory>
@@ -37,11 +38,6 @@ const std::unordered_map<std::string, state_t> lexMap{
 void domainWalker(TokenQueue &tokq) {
 }
 
-void SaifDB::parse(const string &file) {
-  tokq.start(file);
-  saifParse();
-}
-
 void nameNormalize(std::string &str) {
   std::size_t found = str.find("\\[");
   while(found != std::string::npos) {
@@ -70,6 +66,11 @@ string getVal(TokenQueue &q) {
       res = res + ' ' + buf;
   }
   return res;
+}
+
+void SaifDB::parse(const string &file) {
+  tokq.start(file);
+  saifParse();
 }
 
 void SaifDB::saifParse() {
@@ -181,7 +182,9 @@ void SaifDB::saifParse() {
     SAIF_ERR(parent->pins.contains(key), "PIN {} has already been parsed", key);
     auto child = make_unique<SaifPin>(parent->fullName + '.' + key);
     eStk.push(child.get());
+    globalPinMap[child->fullName] = child.get();
     parent->pins[key] = std::move(child);
+
 #ifndef NDEBUG
     cout << format("pin {}: ", key);
 #endif
@@ -265,6 +268,64 @@ void SaifDB::saifParse() {
   }
   default:
     SAIF_ERR(true, "Should not reach here");
+  }
+}
+
+unordered_map<string, SaifPin *> SaifDB::globalPinMap;
+
+SaifPin *SaifDB::findPin(const string &name) {
+  if(globalPinMap.contains(name))
+    return globalPinMap[name];
+  else
+    return nullptr;
+}
+
+const Json::Value &SaifDB::getJson() {
+  if(!infoGen) top->getJson(info);
+  infoGen = true;
+  return info;
+}
+
+void SaifPin::getJson(Json::Value &jval) {
+  string name;
+  if(fullName.find_last_of(".") != string::npos) {
+    name = fullName.substr(fullName.find_last_of(".") + 1);
+  } else {
+    name = fullName;
+  }
+  jval["type"] = "pin";
+  jval["name"] = name;
+  jval["T0"] = T0;
+  jval["T1"] = T1;
+  jval["TX"] = TX;
+  jval["TZ"] = TZ;
+  jval["TC"] = TC;
+  jval["IG"] = IG;
+  jval["TB"] = TB;
+}
+
+void SaifNet::getJson(Json::Value &jval) {
+  for(const auto &[_, p] : pins) {
+    Json::Value pjson;
+    p->getJson(pjson);
+    jval.append(pjson);
+  }
+}
+
+void SaifInstance::getJson(Json::Value &jval) {
+  string name;
+  if(fullName.find_last_of(".") != string::npos) {
+    name = fullName.substr(fullName.find_last_of(".") + 1);
+  } else {
+    name = fullName;
+  }
+  jval["type"] = "instance";
+  jval["name"] = name;
+  if(nullptr != net) net->getJson(jval["net"]);
+  for(const auto &[_, inst] : instances) {
+    Json::Value tmp;
+    inst->getJson(tmp);
+    jval["instances"].append(tmp);
   }
 }
 
