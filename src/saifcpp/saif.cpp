@@ -154,7 +154,7 @@ void SaifDB::saifParse() {
       child->fullName = parent->fullName + '.' + buf;
       parent->instances[buf] = std::move(child);
     }
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("instance {}: ", buf) << endl;
 #endif
     while(tokq.front() != ")") saifParse();
@@ -185,11 +185,11 @@ void SaifDB::saifParse() {
     globalPinMap[child->fullName] = child.get();
     parent->pins[key] = std::move(child);
 
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("pin {}: ", key);
 #endif
     while(tokq.front() != ")") saifParse();
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << endl;
 #endif
     eStk.pop();
@@ -201,7 +201,7 @@ void SaifDB::saifParse() {
     SAIF_ERR(failed, "Illegal ACT declaration!");
     SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
     parent->T0 = std::stoull(getVal(tokq));
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("T0:{} ", parent->T0);
 #endif
     break;
@@ -211,7 +211,7 @@ void SaifDB::saifParse() {
     SAIF_ERR(failed, "Illegal ACT declaration!");
     SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
     parent->T1 = std::stoull(getVal(tokq));
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("T1:{} ", parent->T1);
 #endif
     break;
@@ -221,7 +221,7 @@ void SaifDB::saifParse() {
     SAIF_ERR(failed, "Illegal ACT declaration!");
     SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
     parent->TX = std::stoull(getVal(tokq));
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("TX:{} ", parent->TX);
 #endif
     break;
@@ -231,7 +231,7 @@ void SaifDB::saifParse() {
     SAIF_ERR(failed, "Illegal ACT declaration!");
     SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
     parent->TZ = std::stoull(getVal(tokq));
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("TZ:{} ", parent->TZ);
 #endif
     break;
@@ -241,7 +241,7 @@ void SaifDB::saifParse() {
     SAIF_ERR(failed, "Illegal ACT declaration!");
     SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
     parent->TC = std::stoull(getVal(tokq));
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("TC:{} ", parent->TC);
 #endif
     break;
@@ -251,7 +251,7 @@ void SaifDB::saifParse() {
     SAIF_ERR(failed, "Illegal ACT declaration!");
     SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
     parent->IG = std::stoull(getVal(tokq));
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("IG:{} ", parent->IG);
 #endif
     break;
@@ -261,7 +261,7 @@ void SaifDB::saifParse() {
     SAIF_ERR(failed, "Illegal ACT declaration!");
     SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
     parent->T0 = std::stoull(getVal(tokq));
-#ifndef NDEBUG
+#ifdef LOG_VERBOSE
     cout << format("TB:{} ", parent->TB);
 #endif
     break;
