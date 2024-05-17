@@ -85,6 +85,7 @@ void SaifDB::saifParse() {
     saifParse();
     tokq.pop(buf);
     SAIF_ERR(buf != ")", "Illegal end of file");
+    SAIF_ERR(!eStk.empty(), "Entities stack not clear when meet the end");
     break;
   }
   case SAIF_FILE_VERSION: {
@@ -152,6 +153,7 @@ void SaifDB::saifParse() {
       SAIF_ERR(parent->instances.contains(buf), "INSTANCE {} has already been parsed", buf);
       eStk.push(child.get());
       child->fullName = parent->fullName + '.' + buf;
+      globalInstanceMap[child->fullName] = child.get();
       parent->instances[buf] = std::move(child);
     }
 #ifdef LOG_VERBOSE
@@ -182,7 +184,6 @@ void SaifDB::saifParse() {
     SAIF_ERR(parent->pins.contains(key), "PIN {} has already been parsed", key);
     auto child = make_unique<SaifPin>(parent->fullName + '.' + key);
     eStk.push(child.get());
-    globalPinMap[child->fullName] = child.get();
     parent->pins[key] = std::move(child);
 
 #ifdef LOG_VERBOSE
@@ -199,8 +200,8 @@ void SaifDB::saifParse() {
   case SAIF_T0: {
     bool failed = eStk.empty() || eStk.top()->domain() != SAIF_PIN;
     SAIF_ERR(failed, "Illegal ACT declaration!");
-    SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
-    parent->T0 = std::stoull(getVal(tokq));
+    SaifPin *ctx = dynamic_cast<SaifPin *>(eStk.top());
+    ctx->T0 = std::stoull(getVal(tokq));
 #ifdef LOG_VERBOSE
     cout << format("T0:{} ", parent->T0);
 #endif
@@ -209,8 +210,8 @@ void SaifDB::saifParse() {
   case SAIF_T1: {
     bool failed = eStk.empty() || eStk.top()->domain() != SAIF_PIN;
     SAIF_ERR(failed, "Illegal ACT declaration!");
-    SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
-    parent->T1 = std::stoull(getVal(tokq));
+    SaifPin *ctx = dynamic_cast<SaifPin *>(eStk.top());
+    ctx->T1 = std::stoull(getVal(tokq));
 #ifdef LOG_VERBOSE
     cout << format("T1:{} ", parent->T1);
 #endif
@@ -219,8 +220,8 @@ void SaifDB::saifParse() {
   case SAIF_TX: {
     bool failed = eStk.empty() || eStk.top()->domain() != SAIF_PIN;
     SAIF_ERR(failed, "Illegal ACT declaration!");
-    SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
-    parent->TX = std::stoull(getVal(tokq));
+    SaifPin *ctx = dynamic_cast<SaifPin *>(eStk.top());
+    ctx->TX = std::stoull(getVal(tokq));
 #ifdef LOG_VERBOSE
     cout << format("TX:{} ", parent->TX);
 #endif
@@ -229,8 +230,8 @@ void SaifDB::saifParse() {
   case SAIF_TZ: {
     bool failed = eStk.empty() || eStk.top()->domain() != SAIF_PIN;
     SAIF_ERR(failed, "Illegal ACT declaration!");
-    SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
-    parent->TZ = std::stoull(getVal(tokq));
+    SaifPin *ctx = dynamic_cast<SaifPin *>(eStk.top());
+    ctx->TZ = std::stoull(getVal(tokq));
 #ifdef LOG_VERBOSE
     cout << format("TZ:{} ", parent->TZ);
 #endif
@@ -239,8 +240,8 @@ void SaifDB::saifParse() {
   case SAIF_TC: {
     bool failed = eStk.empty() || eStk.top()->domain() != SAIF_PIN;
     SAIF_ERR(failed, "Illegal ACT declaration!");
-    SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
-    parent->TC = std::stoull(getVal(tokq));
+    SaifPin *ctx = dynamic_cast<SaifPin *>(eStk.top());
+    ctx->TC = std::stoull(getVal(tokq));
 #ifdef LOG_VERBOSE
     cout << format("TC:{} ", parent->TC);
 #endif
@@ -249,8 +250,8 @@ void SaifDB::saifParse() {
   case SAIF_IG: {
     bool failed = eStk.empty() || eStk.top()->domain() != SAIF_PIN;
     SAIF_ERR(failed, "Illegal ACT declaration!");
-    SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
-    parent->IG = std::stoull(getVal(tokq));
+    SaifPin *ctx = dynamic_cast<SaifPin *>(eStk.top());
+    ctx->IG = std::stoull(getVal(tokq));
 #ifdef LOG_VERBOSE
     cout << format("IG:{} ", parent->IG);
 #endif
@@ -259,8 +260,8 @@ void SaifDB::saifParse() {
   case SAIF_TB: {
     bool failed = eStk.empty() || eStk.top()->domain() != SAIF_PIN;
     SAIF_ERR(failed, "Illegal ACT declaration!");
-    SaifPin *parent = dynamic_cast<SaifPin *>(eStk.top());
-    parent->T0 = std::stoull(getVal(tokq));
+    SaifPin *ctx = dynamic_cast<SaifPin *>(eStk.top());
+    ctx->TB = std::stoull(getVal(tokq));
 #ifdef LOG_VERBOSE
     cout << format("TB:{} ", parent->TB);
 #endif
@@ -271,13 +272,10 @@ void SaifDB::saifParse() {
   }
 }
 
-unordered_map<string, SaifPin *> SaifDB::globalPinMap;
+unordered_map<string, SaifInstance *> SaifDB::globalInstanceMap;
 
-SaifPin *SaifDB::findPin(const string &name) {
-  if(globalPinMap.contains(name))
-    return globalPinMap[name];
-  else
-    return nullptr;
+SaifInstance *SaifDB::findInstance(const string &name) {
+  return globalInstanceMap.contains(name) ? globalInstanceMap[name] : nullptr;
 }
 
 const Json::Value &SaifDB::getJson() {

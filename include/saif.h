@@ -100,7 +100,7 @@ class TokenQueue {
 
 class SaifDB {
   private:
-  static std::unordered_map<std::string, SaifPin *> globalPinMap;
+  static std::unordered_map<std::string, SaifInstance *> globalInstanceMap;
 
   public:
   std::string version;
@@ -117,8 +117,8 @@ class SaifDB {
   std::string top_name;
   Json::Value info;
   void parse(const std::string &);
-  SaifPin *findPin(const std::string &);
   const Json::Value &getJson();
+  static SaifInstance *findInstance(const std::string &);
 
   private:
   std::ifstream ifs;
