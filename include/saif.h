@@ -116,11 +116,12 @@ class SaifDB {
   std::unique_ptr<SaifInstance> top;
   std::string top_name;
   Json::Value info;
-  void parse(const std::string &);
+  void parse(const std::string &, bool dontTouchInstName = false);
   const Json::Value &getJson();
   static SaifInstance *findInstance(const std::string &);
 
   private:
+  bool keep;
   std::ifstream ifs;
   std::stack<SaifBase *> eStk;
   TokenQueue tokq;

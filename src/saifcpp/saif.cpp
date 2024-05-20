@@ -38,16 +38,12 @@ const std::unordered_map<std::string, state_t> lexMap{
 void domainWalker(TokenQueue &tokq) {
 }
 
-void nameNormalize(std::string &str) {
-  std::size_t found = str.find("\\[");
+void nameNormalize(std::string &str, bool keep) {
+  if(keep) return;
+  std::size_t found = str.find("\\");
   while(found != std::string::npos) {
     str.erase(found, 1);
-    found = str.find("\\[");
-  }
-  found = str.find("\\]");
-  while(found != std::string::npos) {
-    str.erase(found, 1);
-    found = str.find("\\]");
+    found = str.find("\\");
   }
 }
 
@@ -68,7 +64,8 @@ string getVal(TokenQueue &q) {
   return res;
 }
 
-void SaifDB::parse(const string &file) {
+void SaifDB::parse(const string &file, bool dontTouchInstName) {
+  keep = dontTouchInstName;
   tokq.start(file);
   saifParse();
 }
@@ -140,7 +137,7 @@ void SaifDB::saifParse() {
   }
   case SAIF_INSTANCE: {
     tokq.pop(buf);
-    nameNormalize(buf);
+    nameNormalize(buf, keep);
     auto child = make_unique<SaifInstance>(buf);
     [[unlikely]]
     if(eStk.empty()) {
@@ -177,7 +174,7 @@ void SaifDB::saifParse() {
     break;
   }
   case SAIF_PIN: {
-    nameNormalize(key);
+    nameNormalize(key, keep);
     bool failed = eStk.empty() || eStk.top()->domain() != SAIF_NET;
     SAIF_ERR(failed, "Illegal PIN declaration!");
     SaifNet *parent = dynamic_cast<SaifNet *>(eStk.top());
