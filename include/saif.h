@@ -112,7 +112,7 @@ class SaifDB {
   std::string programName;
   std::string toolVersion;
   std::string divider;
-  uint64_t duration;
+  double duration;
   std::string timescale;
   std::unique_ptr<SaifInstance> top;
   std::string top_name;

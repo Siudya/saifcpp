@@ -145,7 +145,7 @@ void SaifDB::saifParse() {
     break;
   }
   case SAIF_DURATION: {
-    duration = std::stoull(getVal(tokq));
+    duration = std::stod(getVal(tokq));
     saifParse();
     break;
   }
