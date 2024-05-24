@@ -8,16 +8,17 @@
 #include <string>
 #include <unordered_map>
 
-#define SAIF_ERR(expr, ...)                                                   \
-  [[unlikely]] if(expr) {                                                     \
-    std::cerr << fmt::format("[ERROR] @ line {} in {} ", __LINE__, __FILE__); \
-    std::cerr << fmt::format(__VA_ARGS__) << std::endl;                       \
-    exit(1);                                                                  \
+#define SAIF_ERR(expr, ...)                                           \
+  [[unlikely]] if(expr) {                                             \
+    std::cerr << fmt::format("[ERROR] @ {}:{} ", __FILE__, __LINE__); \
+    std::cerr << fmt::format(__VA_ARGS__) << std::endl;               \
+    exit(1);                                                          \
   }
 
 namespace saif {
 
 enum state_t {
+  SAIF_COMMENT,
   SAIF_FILE,
   SAIF_FILE_VERSION,
   SAIF_DIRECTION,

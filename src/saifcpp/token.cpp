@@ -7,7 +7,7 @@
 using namespace std;
 namespace saif {
 
-const boost::char_separator<char> saifSep(" \n\t\"", "()");
+const boost::char_separator<char> saifSep(" \r\n\t\"", "()");
 
 void TokenQueue::start(const string &file) {
   ifs.open(file, ios::in);
